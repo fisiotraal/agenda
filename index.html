@@ -69,7 +69,6 @@
             margin: 5px 0;
         }
 
-        /* Estilos para el modal */
         .modal {
             display: none;
             position: fixed;
@@ -130,12 +129,46 @@
         .patient {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             padding: 5px;
             border-bottom: 1px solid #ddd;
         }
 
         .patient:last-child {
             border-bottom: none;
+        }
+
+        .remove-btn {
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            text-align: center;
+            line-height: 20px;
+            font-size: 14px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: none;
+            align-items: center;
+        }
+
+        .notification.show {
+            display: flex;
+        }
+
+        .notification .check {
+            margin-right: 10px;
         }
     </style>
 </head>
@@ -152,22 +185,17 @@
             <h1 id="today-number">00</h1>
             <p id="today-month">Mes</p>
             <p id="today-day">Día de la semana</p>
-            <div class="patient-list" id="today-patients">
-                <!-- Pacientes del día se mostrarán aquí -->
-            </div>
+            <div class="patient-list" id="today-patients"></div>
         </div>
 
         <div class="day-box" id="tomorrow">
             <h1 id="tomorrow-number">00</h1>
             <p id="tomorrow-month">Mes</p>
             <p id="tomorrow-day">Día de la semana</p>
-            <div class="patient-list" id="tomorrow-patients">
-                <!-- Pacientes del día siguiente se mostrarán aquí -->
-            </div>
+            <div class="patient-list" id="tomorrow-patients"></div>
         </div>
     </div>
 
-    <!-- Modal -->
     <div id="modal" class="modal">
         <div class="modal-content">
             <h2>Agregar Paciente</h2>
@@ -198,90 +226,70 @@
         </div>
     </div>
 
+    <div class="notification" id="notification">
+        <span class="check">✔️</span>
+        <span>Se agregó el Px correctamente</span>
+    </div>
+
     <script>
-        let pacienteCount = 0;
+        let patients = JSON.parse(localStorage.getItem('patients')) || [];
 
-        // Datos de los pacientes por día
-        const patients = {
-            today: [],
-            tomorrow: []
-        };
-
-        // Obtener fecha y mostrar el número de día
         function updateDayInfo() {
             const today = new Date();
             const tomorrow = new Date(today);
             tomorrow.setDate(today.getDate() + 1);
 
-            // Formato de fecha
-            const dayOptions = { weekday: 'long', month: 'long', day: 'numeric' };
-            const todayDate = today.toLocaleDateString('es-ES', dayOptions);
-            const tomorrowDate = tomorrow.toLocaleDateString('es-ES', dayOptions);
-
-            // Actualizar los elementos de la agenda
+            const options = { weekday: 'long', month: 'long' };
             document.getElementById('today-number').textContent = today.getDate();
-            document.getElementById('today-month').textContent = todayDate.split(' ')[1];
-            document.getElementById('today-day').textContent = todayDate.split(' ')[0];
+            document.getElementById('today-month').textContent = today.toLocaleDateString('es-ES', options).split(' ')[1];
+            document.getElementById('today-day').textContent = today.toLocaleDateString('es-ES', { weekday: 'long' });
 
             document.getElementById('tomorrow-number').textContent = tomorrow.getDate();
-            document.getElementById('tomorrow-month').textContent = tomorrowDate.split(' ')[1];
-            document.getElementById('tomorrow-day').textContent = tomorrowDate.split(' ')[0];
-
-            // Establecer fecha en el formulario de agregar paciente
-            const fechaInput = document.getElementById('fecha');
-            const formattedDate = today.toISOString().split('T')[0]; // Formato YYYY-MM-DD
-            fechaInput.value = formattedDate;
+            document.getElementById('tomorrow-month').textContent = tomorrow.toLocaleDateString('es-ES', options).split(' ')[1];
+            document.getElementById('tomorrow-day').textContent = tomorrow.toLocaleDateString('es-ES', { weekday: 'long' });
         }
 
-        // Mostrar pacientes en su respectivo día
         function showPatients() {
-            const today = new Date().toISOString().split('T')[0]; // Fecha de hoy
-            const tomorrowDate = new Date();
-            tomorrowDate.setDate(new Date().getDate() + 1);
-            const tomorrow = tomorrowDate.toISOString().split('T')[0]; // Fecha de mañana
+            const today = new Date().toISOString().split('T')[0];
+            const tomorrow = new Date();
+            tomorrow.setDate(new Date().getDate() + 1);
+            const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-            // Limpiar listas
             document.getElementById('today-patients').innerHTML = '';
             document.getElementById('tomorrow-patients').innerHTML = '';
 
-            // Mostrar pacientes de hoy
-            patients.today.forEach(patient => {
-                if (patient.date === today) {
-                    const div = document.createElement('div');
-                    div.className = 'patient';
-                    div.innerHTML = `${patient.name} - ${patient.time}`;
-                    document.getElementById('today-patients').appendChild(div);
-                }
-            });
+            patients.forEach((patient, index) => {
+                const patientDiv = document.createElement('div');
+                patientDiv.className = 'patient';
+                patientDiv.innerHTML = `${patient.name} - ${patient.time} <button class='remove-btn' onclick='removePatient(${index})'>X</button>`;
 
-            // Mostrar pacientes de mañana
-            patients.tomorrow.forEach(patient => {
-                if (patient.date === tomorrow) {
-                    const div = document.createElement('div');
-                    div.className = 'patient';
-                    div.innerHTML = `${patient.name} - ${patient.time}`;
-                    document.getElementById('tomorrow-patients').appendChild(div);
+                if (patient.date === today) {
+                    document.getElementById('today-patients').appendChild(patientDiv);
+                } else if (patient.date === tomorrowStr) {
+                    document.getElementById('tomorrow-patients').appendChild(patientDiv);
                 }
             });
         }
 
-        // Mostrar modal al hacer clic en el botón
+        function removePatient(index) {
+            patients.splice(index, 1);
+            localStorage.setItem('patients', JSON.stringify(patients));
+            showPatients();
+        }
+
         document.getElementById('addButton').onclick = function() {
             document.getElementById('modal').style.display = 'flex';
         };
 
-        // Cerrar modal si se hace clic fuera del contenido
         window.onclick = function(event) {
             if (event.target === document.getElementById('modal')) {
                 document.getElementById('modal').style.display = 'none';
             }
         };
 
-        // Procesar el formulario de agregar paciente
         document.getElementById('addForm').onsubmit = function(event) {
             event.preventDefault();
 
-            // Obtener los datos del formulario
             const formData = new FormData(this);
             const patient = {
                 name: formData.get('nombre'),
@@ -292,24 +300,16 @@
                 attentionType: formData.get('tipo_atencion')
             };
 
-            // Incrementar el contador de pacientes
-            pacienteCount++;
+            patients.push(patient);
+            localStorage.setItem('patients', JSON.stringify(patients));
 
-            // Agregar paciente al día correspondiente
-            if (patient.date === new Date().toISOString().split('T')[0]) {
-                patients.today.push(patient);
-            } else if (patient.date === new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0]) {
-                patients.tomorrow.push(patient);
-            }
-
-            // Cerrar el modal
             document.getElementById('modal').style.display = 'none';
+            document.getElementById('notification').classList.add('show');
+            setTimeout(() => document.getElementById('notification').classList.remove('show'), 2000);
 
-            // Mostrar los pacientes actualizados
             showPatients();
         };
 
-        // Iniciar la aplicación
         updateDayInfo();
         showPatients();
     </script>
