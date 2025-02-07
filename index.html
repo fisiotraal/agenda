@@ -133,7 +133,7 @@
                 <input type="text" id="tipo_atencion" name="tipo_atencion">
 
                 <label for="numero">Número de Px:</label>
-                <input type="number" id="numero" name="numero" required>
+                <input type="number" id="numero" name="numero" readonly>
 
                 <button type="submit">Guardar</button>
             </form>
@@ -141,12 +141,19 @@
     </div>
 
     <script>
+        // Variables para llevar el conteo de los pacientes registrados
+        let pacienteCount = 0;
+
         // Mostrar el modal al hacer clic en el botón
         document.getElementById('addButton').onclick = function() {
             document.getElementById('modal').style.display = 'flex';
             // Establecer la fecha actual
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('fecha').value = today;
+            // Mostrar el número de paciente con el formato requerido
+            pacienteCount++;
+            const formattedPacienteNumber = `PX-${String(pacienteCount).padStart(4, '0')}-${today.split('-').reverse().join('/')}`;
+            document.getElementById('numero').value = formattedPacienteNumber;
         }
 
         // Cerrar el modal si se hace clic fuera del contenido
@@ -160,6 +167,7 @@
         document.getElementById('addForm').onsubmit = function(event) {
             event.preventDefault(); // Prevenir el envío por defecto
 
+            // Obtener los datos del formulario
             const formData = new FormData(this);
             const data = {};
             formData.forEach((value, key) => {
@@ -168,9 +176,12 @@
 
             console.log('Datos del paciente:', data);
 
-            // Aquí puedes agregar la lógica para guardar o procesar los datos
+            // Aquí podrías agregar la lógica para guardar los datos (como en una base de datos o localStorage)
+            
+            // Limpiar el formulario después de guardar
+            document.getElementById('addForm').reset();
 
-            // Cerrar el modal
+            // Ocultar el modal
             document.getElementById('modal').style.display = 'none';
         }
     </script>
