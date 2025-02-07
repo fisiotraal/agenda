@@ -183,15 +183,15 @@
     <div class="content">
         <div class="day-box" id="today">
             <h1 id="today-number">00</h1>
-            <p id="today-month">Mes</p>
             <p id="today-day">Día de la semana</p>
+            <p id="today-month">Mes</p>
             <div class="patient-list" id="today-patients"></div>
         </div>
 
         <div class="day-box" id="tomorrow">
             <h1 id="tomorrow-number">00</h1>
-            <p id="tomorrow-month">Mes</p>
             <p id="tomorrow-day">Día de la semana</p>
+            <p id="tomorrow-month">Mes</p>
             <div class="patient-list" id="tomorrow-patients"></div>
         </div>
     </div>
@@ -233,6 +233,12 @@
 
     <script>
         let patients = JSON.parse(localStorage.getItem('patients')) || [];
+
+        const validHours = [
+            "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", 
+            "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", 
+            "21:00", "22:00"
+        ];
 
         function updateDayInfo() {
             const today = new Date();
@@ -291,6 +297,13 @@
             event.preventDefault();
 
             const formData = new FormData(this);
+            const hora = formData.get('hora');
+
+            if (!validHours.includes(hora)) {
+                alert("La hora seleccionada no es válida.");
+                return;
+            }
+
             const patient = {
                 name: formData.get('nombre'),
                 date: formData.get('fecha'),
