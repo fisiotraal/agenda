@@ -220,12 +220,12 @@
 
             // Actualizar los elementos de la agenda
             document.getElementById('today-number').textContent = today.getDate();
-            document.getElementById('today-month').textContent = todayDate.split(',')[0];
-            document.getElementById('today-day').textContent = todayDate.split(',')[1];
+            document.getElementById('today-month').textContent = todayDate.split(' ')[1];
+            document.getElementById('today-day').textContent = todayDate.split(' ')[0];
 
             document.getElementById('tomorrow-number').textContent = tomorrow.getDate();
-            document.getElementById('tomorrow-month').textContent = tomorrowDate.split(',')[0];
-            document.getElementById('tomorrow-day').textContent = tomorrowDate.split(',')[1];
+            document.getElementById('tomorrow-month').textContent = tomorrowDate.split(' ')[1];
+            document.getElementById('tomorrow-day').textContent = tomorrowDate.split(' ')[0];
 
             // Establecer fecha en el formulario de agregar paciente
             const fechaInput = document.getElementById('fecha');
@@ -236,30 +236,32 @@
         // Mostrar pacientes en su respectivo día
         function showPatients() {
             const today = new Date().toISOString().split('T')[0]; // Fecha de hoy
-            const todayPatients = patients.today.filter(patient => patient.date === today);
-            const tomorrow = new Date();
-            tomorrow.setDate(today.getDate() + 1);
-            const tomorrowDate = tomorrow.toISOString().split('T')[0]; // Fecha de mañana
-            const tomorrowPatients = patients.tomorrow.filter(patient => patient.date === tomorrowDate);
+            const tomorrowDate = new Date();
+            tomorrowDate.setDate(new Date().getDate() + 1);
+            const tomorrow = tomorrowDate.toISOString().split('T')[0]; // Fecha de mañana
 
             // Limpiar listas
             document.getElementById('today-patients').innerHTML = '';
             document.getElementById('tomorrow-patients').innerHTML = '';
 
             // Mostrar pacientes de hoy
-            todayPatients.forEach(patient => {
-                const div = document.createElement('div');
-                div.className = 'patient';
-                div.innerHTML = `${patient.name} - ${patient.time}`;
-                document.getElementById('today-patients').appendChild(div);
+            patients.today.forEach(patient => {
+                if (patient.date === today) {
+                    const div = document.createElement('div');
+                    div.className = 'patient';
+                    div.innerHTML = `${patient.name} - ${patient.time}`;
+                    document.getElementById('today-patients').appendChild(div);
+                }
             });
 
             // Mostrar pacientes de mañana
-            tomorrowPatients.forEach(patient => {
-                const div = document.createElement('div');
-                div.className = 'patient';
-                div.innerHTML = `${patient.name} - ${patient.time}`;
-                document.getElementById('tomorrow-patients').appendChild(div);
+            patients.tomorrow.forEach(patient => {
+                if (patient.date === tomorrow) {
+                    const div = document.createElement('div');
+                    div.className = 'patient';
+                    div.innerHTML = `${patient.name} - ${patient.time}`;
+                    document.getElementById('tomorrow-patients').appendChild(div);
+                }
             });
         }
 
@@ -296,7 +298,7 @@
             // Agregar paciente al día correspondiente
             if (patient.date === new Date().toISOString().split('T')[0]) {
                 patients.today.push(patient);
-            } else {
+            } else if (patient.date === new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0]) {
                 patients.tomorrow.push(patient);
             }
 
