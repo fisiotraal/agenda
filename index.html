@@ -226,6 +226,11 @@
             document.getElementById('tomorrow-number').textContent = tomorrow.getDate();
             document.getElementById('tomorrow-month').textContent = tomorrowDate.split(',')[0];
             document.getElementById('tomorrow-day').textContent = tomorrowDate.split(',')[1];
+
+            // Establecer fecha en el formulario de agregar paciente
+            const fechaInput = document.getElementById('fecha');
+            const formattedDate = today.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+            fechaInput.value = formattedDate;
         }
 
         // Mostrar pacientes en su respectivo día
@@ -295,15 +300,14 @@
                 patients.tomorrow.push(patient);
             }
 
-            // Mostrar los pacientes
-            showPatients();
-
-            // Limpiar el formulario
-            document.getElementById('addForm').reset();
+            // Cerrar el modal
             document.getElementById('modal').style.display = 'none';
+
+            // Mostrar los pacientes actualizados
+            showPatients();
         };
 
-        // Actualizar la información de los días y mostrar pacientes al cargar
+        // Iniciar la aplicación
         updateDayInfo();
         showPatients();
     </script>
