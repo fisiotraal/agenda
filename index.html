@@ -43,9 +43,13 @@
 
         .content {
             background-image: url('agendaft.png');
-            background-size: cover;
+            background-size: contain;  /* Cambié a 'contain' para ajustar mejor la imagen */
+            background-repeat: no-repeat;
             background-position: center;
             height: calc(100vh - 60px); /* Restando el alto de la franja superior */
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
     </style>
 </head>
