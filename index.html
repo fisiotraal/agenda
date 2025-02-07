@@ -43,13 +43,59 @@
 
         .content {
             background-image: url('agendaft.png');
-            background-size: contain;  /* Cambié a 'contain' para ajustar mejor la imagen */
+            background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            height: calc(100vh - 60px); /* Restando el alto de la franja superior */
+            height: calc(100vh - 60px);
             display: flex;
             justify-content: center;
             align-items: center;
+        }
+
+        /* Estilos para el modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 400px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-content input,
+        .modal-content select,
+        .modal-content textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .modal-content button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .modal-content button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
@@ -58,9 +104,75 @@
         <a href="https://fisiotraal.github.io/system/">
             <img src="logo.png" alt="Logo Fisiotraal">
         </a>
-        <button>Agregar px</button>
+        <button id="addButton">Agregar px</button>
     </div>
 
     <div class="content"></div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h2>Agregar Paciente</h2>
+            <form id="addForm">
+                <label for="fecha">Fecha:</label>
+                <input type="text" id="fecha" name="fecha" value="" readonly>
+
+                <label for="nombre">Nombre Px:</label>
+                <input type="text" id="nombre" name="nombre" required>
+
+                <label for="atendido_por">Atendido por:</label>
+                <select id="atendido_por" name="atendido_por" required>
+                    <option value="E">E</option>
+                    <option value="A">A</option>
+                </select>
+
+                <label for="observacion">Observación (opcional):</label>
+                <textarea id="observacion" name="observacion"></textarea>
+
+                <label for="tipo_atencion">Tipo de atención (opcional):</label>
+                <input type="text" id="tipo_atencion" name="tipo_atencion">
+
+                <label for="numero">Número de Px:</label>
+                <input type="number" id="numero" name="numero" required>
+
+                <button type="submit">Guardar</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Mostrar el modal al hacer clic en el botón
+        document.getElementById('addButton').onclick = function() {
+            document.getElementById('modal').style.display = 'flex';
+            // Establecer la fecha actual
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('fecha').value = today;
+        }
+
+        // Cerrar el modal si se hace clic fuera del contenido
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('modal')) {
+                document.getElementById('modal').style.display = 'none';
+            }
+        }
+
+        // Enviar el formulario
+        document.getElementById('addForm').onsubmit = function(event) {
+            event.preventDefault(); // Prevenir el envío por defecto
+
+            const formData = new FormData(this);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            console.log('Datos del paciente:', data);
+
+            // Aquí puedes agregar la lógica para guardar o procesar los datos
+
+            // Cerrar el modal
+            document.getElementById('modal').style.display = 'none';
+        }
+    </script>
 </body>
 </html>
