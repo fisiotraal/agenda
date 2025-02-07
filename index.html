@@ -42,14 +42,31 @@
         }
 
         .content {
-            background-image: url('agendaft.png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            height: calc(100vh - 60px);
             display: flex;
-            justify-content: center;
-            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            height: calc(100vh - 60px);
+            box-sizing: border-box;
+        }
+
+        .day-box {
+            width: 45%;
+            background-color: #fff;
+            padding: 20px;
+            box-sizing: border-box;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .day-box h1 {
+            font-size: 3rem;
+            text-align: center;
+        }
+
+        .day-box p {
+            font-size: 1.2rem;
+            text-align: center;
+            margin: 5px 0;
         }
 
         /* Estilos para el modal */
@@ -97,6 +114,29 @@
         .modal-content button:hover {
             background-color: #0056b3;
         }
+
+        .patient-list {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .patient-list p {
+            font-size: 1rem;
+        }
+
+        .patient {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .patient:last-child {
+            border-bottom: none;
+        }
     </style>
 </head>
 <body>
@@ -107,7 +147,25 @@
         <button id="addButton">Agregar px</button>
     </div>
 
-    <div class="content"></div>
+    <div class="content">
+        <div class="day-box" id="today">
+            <h1 id="today-number">00</h1>
+            <p id="today-month">Mes</p>
+            <p id="today-day">Día de la semana</p>
+            <div class="patient-list" id="today-patients">
+                <!-- Pacientes del día se mostrarán aquí -->
+            </div>
+        </div>
+
+        <div class="day-box" id="tomorrow">
+            <h1 id="tomorrow-number">00</h1>
+            <p id="tomorrow-month">Mes</p>
+            <p id="tomorrow-day">Día de la semana</p>
+            <div class="patient-list" id="tomorrow-patients">
+                <!-- Pacientes del día siguiente se mostrarán aquí -->
+            </div>
+        </div>
+    </div>
 
     <!-- Modal -->
     <div id="modal" class="modal">
@@ -115,7 +173,10 @@
             <h2>Agregar Paciente</h2>
             <form id="addForm">
                 <label for="fecha">Fecha:</label>
-                <input type="text" id="fecha" name="fecha" value="" readonly>
+                <input type="date" id="fecha" name="fecha" required>
+
+                <label for="hora">Hora:</label>
+                <input type="time" id="hora" name="hora" required>
 
                 <label for="nombre">Nombre Px:</label>
                 <input type="text" id="nombre" name="nombre" required>
@@ -132,58 +193,119 @@
                 <label for="tipo_atencion">Tipo de atención (opcional):</label>
                 <input type="text" id="tipo_atencion" name="tipo_atencion">
 
-                <label for="numero">Número de Px:</label>
-                <input type="number" id="numero" name="numero" readonly>
-
                 <button type="submit">Guardar</button>
             </form>
         </div>
     </div>
 
     <script>
-        // Variables para llevar el conteo de los pacientes registrados
         let pacienteCount = 0;
 
-        // Mostrar el modal al hacer clic en el botón
+        // Datos de los pacientes por día
+        const patients = {
+            today: [],
+            tomorrow: []
+        };
+
+        // Obtener fecha y mostrar el número de día
+        function updateDayInfo() {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(today.getDate() + 1);
+
+            // Formato de fecha
+            const dayOptions = { weekday: 'long', month: 'long', day: 'numeric' };
+            const todayDate = today.toLocaleDateString('es-ES', dayOptions);
+            const tomorrowDate = tomorrow.toLocaleDateString('es-ES', dayOptions);
+
+            // Actualizar los elementos de la agenda
+            document.getElementById('today-number').textContent = today.getDate();
+            document.getElementById('today-month').textContent = todayDate.split(',')[0];
+            document.getElementById('today-day').textContent = todayDate.split(',')[1];
+
+            document.getElementById('tomorrow-number').textContent = tomorrow.getDate();
+            document.getElementById('tomorrow-month').textContent = tomorrowDate.split(',')[0];
+            document.getElementById('tomorrow-day').textContent = tomorrowDate.split(',')[1];
+        }
+
+        // Mostrar pacientes en su respectivo día
+        function showPatients() {
+            const today = new Date().toISOString().split('T')[0]; // Fecha de hoy
+            const todayPatients = patients.today.filter(patient => patient.date === today);
+            const tomorrow = new Date();
+            tomorrow.setDate(today.getDate() + 1);
+            const tomorrowDate = tomorrow.toISOString().split('T')[0]; // Fecha de mañana
+            const tomorrowPatients = patients.tomorrow.filter(patient => patient.date === tomorrowDate);
+
+            // Limpiar listas
+            document.getElementById('today-patients').innerHTML = '';
+            document.getElementById('tomorrow-patients').innerHTML = '';
+
+            // Mostrar pacientes de hoy
+            todayPatients.forEach(patient => {
+                const div = document.createElement('div');
+                div.className = 'patient';
+                div.innerHTML = `${patient.name} - ${patient.time}`;
+                document.getElementById('today-patients').appendChild(div);
+            });
+
+            // Mostrar pacientes de mañana
+            tomorrowPatients.forEach(patient => {
+                const div = document.createElement('div');
+                div.className = 'patient';
+                div.innerHTML = `${patient.name} - ${patient.time}`;
+                document.getElementById('tomorrow-patients').appendChild(div);
+            });
+        }
+
+        // Mostrar modal al hacer clic en el botón
         document.getElementById('addButton').onclick = function() {
             document.getElementById('modal').style.display = 'flex';
-            // Establecer la fecha actual
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('fecha').value = today;
-            // Mostrar el número de paciente con el formato requerido
-            pacienteCount++;
-            const formattedPacienteNumber = `PX-${String(pacienteCount).padStart(4, '0')}-${today.split('-').reverse().join('/')}`;
-            document.getElementById('numero').value = formattedPacienteNumber;
-        }
+        };
 
-        // Cerrar el modal si se hace clic fuera del contenido
+        // Cerrar modal si se hace clic fuera del contenido
         window.onclick = function(event) {
-            if (event.target == document.getElementById('modal')) {
+            if (event.target === document.getElementById('modal')) {
                 document.getElementById('modal').style.display = 'none';
             }
-        }
+        };
 
-        // Enviar el formulario
+        // Procesar el formulario de agregar paciente
         document.getElementById('addForm').onsubmit = function(event) {
-            event.preventDefault(); // Prevenir el envío por defecto
+            event.preventDefault();
 
             // Obtener los datos del formulario
             const formData = new FormData(this);
-            const data = {};
-            formData.forEach((value, key) => {
-                data[key] = value;
-            });
+            const patient = {
+                name: formData.get('nombre'),
+                date: formData.get('fecha'),
+                time: formData.get('hora'),
+                attendedBy: formData.get('atendido_por'),
+                observation: formData.get('observacion'),
+                attentionType: formData.get('tipo_atencion')
+            };
 
-            console.log('Datos del paciente:', data);
+            // Incrementar el contador de pacientes
+            pacienteCount++;
 
-            // Aquí podrías agregar la lógica para guardar los datos (como en una base de datos o localStorage)
-            
-            // Limpiar el formulario después de guardar
+            // Agregar paciente al día correspondiente
+            if (patient.date === new Date().toISOString().split('T')[0]) {
+                patients.today.push(patient);
+            } else {
+                patients.tomorrow.push(patient);
+            }
+
+            // Mostrar los pacientes
+            showPatients();
+
+            // Limpiar el formulario
             document.getElementById('addForm').reset();
-
-            // Ocultar el modal
             document.getElementById('modal').style.display = 'none';
-        }
+        };
+
+        // Actualizar la información de los días y mostrar pacientes al cargar
+        updateDayInfo();
+        showPatients();
     </script>
 </body>
 </html>
